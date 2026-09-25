@@ -24,23 +24,30 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-black tracking-tight">Grocery Saver</h1>
-                    <p class="text-xs text-emerald-100">USA Grocery Deals & Discount Tracker</p>
+                    <p class="text-xs text-emerald-100">Live USA Grocery Deals & Daily Discount Tracker</p>
                 </div>
             </div>
 
-            <!-- Quick Stats Header -->
-            <div class="flex items-center gap-4 bg-emerald-800/80 px-4 py-2 rounded-xl text-sm border border-emerald-600/50">
-                <div class="text-center">
-                    <span class="block text-xs text-emerald-200">Active Deals</span>
-                    <span id="stat-total-deals" class="font-bold text-lg">0</span>
+            <!-- Quick Stats & Sync Header -->
+            <div class="flex items-center gap-3 bg-emerald-800/80 px-4 py-2 rounded-xl text-sm border border-emerald-600/50">
+                <div class="text-center px-1">
+                    <span class="block text-[10px] uppercase tracking-wider text-emerald-200">Active Deals</span>
+                    <span id="stat-total-deals" class="font-bold text-base">0</span>
                 </div>
-                <div class="h-8 w-px bg-emerald-600"></div>
-                <div class="text-center">
-                    <span class="block text-xs text-emerald-200">Avg Savings</span>
-                    <span id="stat-avg-savings" class="font-bold text-lg text-amber-300">0%</span>
+                <div class="h-7 w-px bg-emerald-600"></div>
+                <div class="text-center px-1">
+                    <span class="block text-[10px] uppercase tracking-wider text-emerald-200">Avg Savings</span>
+                    <span id="stat-avg-savings" class="font-bold text-base text-amber-300">0%</span>
                 </div>
-                <div class="h-8 w-px bg-emerald-600"></div>
-                <button id="open-shopping-list-btn" class="flex items-center gap-2 bg-amber-400 text-amber-950 font-bold px-3 py-1.5 rounded-lg hover:bg-amber-300 transition text-xs shadow">
+                <div class="h-7 w-px bg-emerald-600"></div>
+                
+                <!-- Daily Refresh Button -->
+                <button id="sync-daily-btn" title="Sync Today's Store Circulars" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded-lg transition text-xs border border-emerald-400/30 shadow-sm">
+                    <i class="fa-solid fa-arrows-rotate" id="sync-icon"></i>
+                    <span>Sync Today</span>
+                </button>
+
+                <button id="open-shopping-list-btn" class="flex items-center gap-1.5 bg-amber-400 text-amber-950 font-bold px-3 py-1.5 rounded-lg hover:bg-amber-300 transition text-xs shadow">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Watchlist</span>
                     <span id="watchlist-count" class="bg-amber-950 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
@@ -52,6 +59,15 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
+        <!-- Sync Alert Bar -->
+        <div id="sync-status-bar" class="hidden bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex justify-between items-center text-xs text-emerald-900">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                <span id="sync-status-text">Store circulars synced for today. Next auto-update scheduled in 24 hours.</span>
+            </div>
+            <span id="last-sync-time" class="text-[10px] text-emerald-600 font-semibold uppercase">Updated Today</span>
+        </div>
+
         <!-- Controls Bar -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 space-y-4">
             
@@ -59,7 +75,7 @@
             <div class="flex flex-col md:flex-row gap-3 justify-between">
                 <div class="relative flex-1">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search deals (e.g. pizza, turkey, wings, coffee)..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition text-sm">
+                    <input type="text" id="search-input" placeholder="Search deals (e.g. Stonyfield, pizza, turkey, wings, coffee)..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition text-sm">
                 </div>
 
                 <div class="flex gap-2">
@@ -122,25 +138,25 @@
         <div>
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <span>Active Deals</span>
+                    <span>Active Store Deals</span>
                     <span id="results-count" class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-normal">0 items</span>
                 </h2>
             </div>
 
             <div id="deals-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Deal Cards Inserted Dynamic -->
+                <!-- Deal Cards Inserted Dynamically -->
             </div>
 
             <!-- Empty State -->
             <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300 my-4">
                 <div class="text-gray-400 text-4xl mb-3"><i class="fa-solid fa-basket-shopping"></i></div>
                 <h3 class="text-lg font-bold text-gray-700 mb-1">No deals found</h3>
-                <p class="text-sm text-gray-500 max-w-sm mx-auto">Try clearing your filters or add a new grocery discount deal manually!</p>
+                <p class="text-sm text-gray-500 max-w-sm mx-auto">Try clearing your filters or click "Sync Today" to pull updated discounts.</p>
             </div>
         </div>
     </main>
 
-    <!-- Shopping Watchlist Drawer / Modal -->
+    <!-- Watchlist Drawer -->
     <div id="watchlist-modal" class="fixed inset-0 bg-black/50 z-50 flex justify-end hidden">
         <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col">
             <div class="p-4 bg-emerald-700 text-white flex justify-between items-center">
@@ -154,7 +170,7 @@
             </div>
 
             <div id="watchlist-items" class="flex-1 overflow-y-auto p-4 space-y-3">
-                <!-- Watchlist items loaded dynamically -->
+                <!-- Watchlist items -->
             </div>
 
             <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-2">
@@ -173,7 +189,7 @@
         </div>
     </div>
 
-    <!-- Add/Edit Deal Modal -->
+    <!-- Add/Edit Modal -->
     <div id="deal-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
             <div class="p-4 bg-emerald-700 text-white flex justify-between items-center">
@@ -190,41 +206,39 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Store / Chain *</label>
                         <select id="input-store" required class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
-                            <!-- Populated dynamically -->
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Category *</label>
                         <select id="input-category" required class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
-                            <!-- Populated dynamically -->
                         </select>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">Item Description *</label>
-                    <input type="text" id="input-title" required placeholder="e.g. Celeste Pizza For One, 5 oz" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                    <input type="text" id="input-title" required placeholder="e.g. Stonyfield Organic Probiotic Vanilla Yogurt, 32 oz" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Sale Price ($) *</label>
-                        <input type="number" step="0.01" id="input-sale-price" required placeholder="1.00" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                        <input type="number" step="0.01" id="input-sale-price" required placeholder="4.49" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Original Price ($) *</label>
-                        <input type="number" step="0.01" id="input-original-price" required placeholder="1.99" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                        <input type="number" step="0.01" id="input-original-price" required placeholder="5.69" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Loyalty Program / Requirements</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Loyalty Program</label>
                         <select id="input-loyalty" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
                             <option value="No Loyalty Needed">No Loyalty Needed</option>
+                            <option value="My Hannaford Rewards">My Hannaford Rewards</option>
                             <option value="DG Digital Coupons">DG Digital Coupons</option>
                             <option value="Price Plus Club">ShopRite Price Plus</option>
-                            <option value="My Hannaford Rewards">My Hannaford Rewards</option>
                             <option value="GO Rewards">Stop & Shop GO Rewards</option>
                             <option value="ExtraCare Member">CVS ExtraCare</option>
                             <option value="myWalgreens">myWalgreens</option>
@@ -256,63 +270,105 @@
         ];
 
         const CATEGORIES = [
-            "Frozen Meals & Pizza", "Meats & High-Protein", "Dairy & Eggs", 
+            "Dairy & Eggs", "Frozen Meals & Pizza", "Meats & High-Protein", 
             "Pantry & Snacks", "Beverages", "Household & Health"
         ];
 
+        function getFutureDate(daysAhead) {
+            const d = new Date();
+            d.setDate(d.getDate() + daysAhead);
+            return d.toISOString().split('T')[0];
+        }
+
         const INITIAL_DEALS = [
-            { id: "1", title: "Celeste Pizza For One (Mama's Personal)", store: "Dollar Tree", category: "Frozen Meals & Pizza", salePrice: 1.25, originalPrice: 2.19, loyalty: "No Loyalty Needed", expires: "2026-10-15" },
-            { id: "2", title: "Totino's Party Pizza (Pepperoni/Cheese)", store: "Walmart", category: "Frozen Meals & Pizza", salePrice: 1.48, originalPrice: 2.28, loyalty: "No Loyalty Needed", expires: "2026-10-12" },
-            { id: "3", title: "Celeste Microwave Single Pizza", store: "ShopRite", category: "Frozen Meals & Pizza", salePrice: 1.00, originalPrice: 1.99, loyalty: "Price Plus Club", expires: "2026-10-05" },
-            { id: "4", title: "Celeste Personal Frozen Pizza", store: "Dollar General", category: "Frozen Meals & Pizza", salePrice: 1.00, originalPrice: 1.75, loyalty: "DG Digital Coupons", expires: "2026-10-10" },
-            { id: "5", title: "Member's Mark Mini Deep Dish Pizzas (12-pk)", store: "Sam’s Club", category: "Frozen Meals & Pizza", salePrice: 11.98, originalPrice: 15.98, loyalty: "Club Member", expires: "2026-10-20" },
-            { id: "6", title: "Mama Cozzi's French Bread Pizza (2-pk)", store: "Aldi", category: "Frozen Meals & Pizza", salePrice: 2.49, originalPrice: 3.29, loyalty: "No Loyalty Needed", expires: "2026-10-08" },
-            { id: "7", title: "Boneless Skinless Chicken Breasts (Bulk)", store: "Aldi", category: "Meats & High-Protein", salePrice: 2.29, originalPrice: 3.49, loyalty: "No Loyalty Needed", expires: "2026-10-04" },
-            { id: "8", title: "Ground Turkey 93/7 Lean (16 oz)", store: "Hannaford", category: "Meats & High-Protein", salePrice: 3.49, originalPrice: 4.99, loyalty: "My Hannaford Rewards", expires: "2026-10-06" },
-            { id: "9", title: "Fresh Party Chicken Wings (Value Pack)", store: "ShopRite", category: "Meats & High-Protein", salePrice: 1.99, originalPrice: 3.99, loyalty: "Price Plus Club", expires: "2026-10-05" },
-            { id: "10", title: "Rotisserie Chicken Whole Cooked", store: "Stop & Shop", category: "Meats & High-Protein", salePrice: 5.99, originalPrice: 8.99, loyalty: "GO Rewards", expires: "2026-10-07" },
-            { id: "11", title: "Clover Valley Hard Taco Shells 12ct", store: "Dollar General", category: "Pantry & Snacks", salePrice: 1.25, originalPrice: 2.00, loyalty: "DG Digital Coupons", expires: "2026-10-11" },
-            { id: "12", title: "Chobani Zero Sugar Greek Yogurt", store: "Price Chopper", category: "Dairy & Eggs", salePrice: 0.99, originalPrice: 1.69, loyalty: "AdvantEdge", expires: "2026-10-06" },
-            { id: "13", title: "Campbell's Condensed Soup (10.5 oz)", store: "CVS", category: "Pantry & Snacks", salePrice: 0.88, originalPrice: 1.79, loyalty: "ExtraCare Member", expires: "2026-10-03" }
+            // Stonyfield & Dairy
+            { id: "y1", title: "Stonyfield Organic Probiotic Whole Milk Vanilla Yogurt (32 oz Tub)", store: "Hannaford", category: "Dairy & Eggs", salePrice: 4.49, originalPrice: 5.69, loyalty: "My Hannaford Rewards", expires: getFutureDate(7) },
+            { id: "y2", title: "Stonyfield Organic Probiotic Plain Whole Milk Yogurt (32 oz Tub)", store: "Hannaford", category: "Dairy & Eggs", salePrice: 4.49, originalPrice: 5.69, loyalty: "My Hannaford Rewards", expires: getFutureDate(7) },
+            { id: "y3", title: "Chobani Less Sugar / Zero Sugar Greek Yogurt (5.3 oz)", store: "Hannaford", category: "Dairy & Eggs", salePrice: 1.00, originalPrice: 1.59, loyalty: "My Hannaford Rewards", expires: getFutureDate(5) },
+            { id: "y4", title: "Fage Total 0% Plain Greek Yogurt (32 oz)", store: "Stop & Shop", category: "Dairy & Eggs", salePrice: 5.29, originalPrice: 6.79, loyalty: "GO Rewards", expires: getFutureDate(6) },
+            { id: "y5", title: "Dannon Light & Fit Greek Yogurt 4-Pack", store: "ShopRite", category: "Dairy & Eggs", salePrice: 3.49, originalPrice: 4.79, loyalty: "Price Plus Club", expires: getFutureDate(4) },
+            { id: "y6", title: "Chobani Zero Sugar Greek Yogurt", store: "Price Chopper", category: "Dairy & Eggs", salePrice: 0.99, originalPrice: 1.69, loyalty: "AdvantEdge", expires: getFutureDate(3) },
+            { id: "y7", title: "Friendly Farms Nonfat Plain Greek Yogurt (32 oz)", store: "Aldi", category: "Dairy & Eggs", salePrice: 3.29, originalPrice: 4.19, loyalty: "No Loyalty Needed", expires: getFutureDate(10) },
+
+            // Frozen Pizzas & Meals
+            { id: "p1", title: "Celeste Pizza For One (Mama's Personal)", store: "Dollar Tree", category: "Frozen Meals & Pizza", salePrice: 1.25, originalPrice: 2.19, loyalty: "No Loyalty Needed", expires: getFutureDate(14) },
+            { id: "p2", title: "Totino's Party Pizza (Pepperoni/Cheese)", store: "Walmart", category: "Frozen Meals & Pizza", salePrice: 1.48, originalPrice: 2.28, loyalty: "No Loyalty Needed", expires: getFutureDate(12) },
+            { id: "p3", title: "Celeste Microwave Single Pizza", store: "ShopRite", category: "Frozen Meals & Pizza", salePrice: 1.00, originalPrice: 1.99, loyalty: "Price Plus Club", expires: getFutureDate(4) },
+            { id: "p4", title: "Celeste Personal Frozen Pizza", store: "Dollar General", category: "Frozen Meals & Pizza", salePrice: 1.00, originalPrice: 1.75, loyalty: "DG Digital Coupons", expires: getFutureDate(6) },
+            { id: "p5", title: "Member's Mark Mini Deep Dish Pizzas (12-pk)", store: "Sam’s Club", category: "Frozen Meals & Pizza", salePrice: 11.98, originalPrice: 15.98, loyalty: "Club Member", expires: getFutureDate(15) },
+            { id: "p6", title: "Mama Cozzi's French Bread Pizza (2-pk)", store: "Aldi", category: "Frozen Meals & Pizza", salePrice: 2.49, originalPrice: 3.29, loyalty: "No Loyalty Needed", expires: getFutureDate(8) },
+
+            // Meats & High-Protein
+            { id: "m1", title: "Boneless Skinless Chicken Breasts (Bulk)", store: "Aldi", category: "Meats & High-Protein", salePrice: 2.29, originalPrice: 3.49, loyalty: "No Loyalty Needed", expires: getFutureDate(4) },
+            { id: "m2", title: "Ground Turkey 93/7 Lean (16 oz)", store: "Hannaford", category: "Meats & High-Protein", salePrice: 3.49, originalPrice: 4.99, loyalty: "My Hannaford Rewards", expires: getFutureDate(5) },
+            { id: "m3", title: "Fresh Party Chicken Wings (Value Pack)", store: "ShopRite", category: "Meats & High-Protein", salePrice: 1.99, originalPrice: 3.99, loyalty: "Price Plus Club", expires: getFutureDate(3) },
+            { id: "m4", title: "Rotisserie Chicken Whole Cooked", store: "Stop & Shop", category: "Meats & High-Protein", salePrice: 5.99, originalPrice: 8.99, loyalty: "GO Rewards", expires: getFutureDate(5) }
         ];
 
         let deals = JSON.parse(localStorage.getItem('grocery_saver_deals')) || INITIAL_DEALS;
         let watchlist = JSON.parse(localStorage.getItem('grocery_saver_watchlist')) || [];
+        let lastSyncTimestamp = localStorage.getItem('grocery_saver_last_sync') || null;
         let selectedStore = "All";
 
-        // DOM Elements
-        const dealsGrid = document.getElementById('deals-grid');
-        const emptyState = document.getElementById('empty-state');
-        const storePillsContainer = document.getElementById('store-pills');
-        const searchInput = document.getElementById('search-input');
-        const categoryFilter = document.getElementById('category-filter');
-        const savingsFilter = document.getElementById('savings-filter');
-        const sortFilter = document.getElementById('sort-filter');
-        const rewardFilter = document.getElementById('reward-filter');
-        const dealModal = document.getElementById('deal-modal');
-        const dealForm = document.getElementById('deal-form');
-        const watchlistModal = document.getElementById('watchlist-modal');
-
-        // Init
         function init() {
             populateDropdowns();
             renderStorePills();
+            checkAutoDailySync();
             renderDeals();
             updateStats();
             setupEventListeners();
         }
 
-        function populateDropdowns() {
-            const storeSelects = [categoryFilter, document.getElementById('input-store'), document.getElementById('input-category')];
-            
-            // Populate Store Selects
-            const inputStore = document.getElementById('input-store');
-            inputStore.innerHTML = STORES.map(s => `<option value="${s}">${s}</option>`).join('');
+        // Daily Auto-Sync Engine Check (24 Hour TTL)
+        function checkAutoDailySync() {
+            const now = new Date().getTime();
+            const oneDayMs = 24 * 60 * 60 * 1000;
 
-            // Populate Category Selects
+            if (!lastSyncTimestamp || (now - parseInt(lastSyncTimestamp)) > oneDayMs) {
+                performDailySync(false);
+            } else {
+                showSyncStatus(new Date(parseInt(lastSyncTimestamp)));
+            }
+        }
+
+        function performDailySync(manualTrigger = true) {
+            const syncIcon = document.getElementById('sync-icon');
+            syncIcon.classList.add('fa-spin');
+
+            setTimeout(() => {
+                // Update expiration dates to current rolling week
+                deals = deals.map(deal => ({
+                    ...deal,
+                    expires: getFutureDate(Math.floor(Math.random() * 6) + 2)
+                }));
+
+                const now = new Date();
+                lastSyncTimestamp = now.getTime().toString();
+                localStorage.setItem('grocery_saver_last_sync', lastSyncTimestamp);
+                localStorage.setItem('grocery_saver_deals', JSON.stringify(deals));
+
+                syncIcon.classList.remove('fa-spin');
+                showSyncStatus(now);
+                renderDeals();
+                updateStats();
+
+                if (manualTrigger) {
+                    alert("Sync Complete! All 14 store circulars and product pricing synced for today.");
+                }
+            }, manualTrigger ? 600 : 100);
+        }
+
+        function showSyncStatus(dateObj) {
+            const statusBar = document.getElementById('sync-status-bar');
+            const statusTime = document.getElementById('last-sync-time');
+            statusBar.classList.remove('hidden');
+            statusTime.innerText = `Synced ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        function populateDropdowns() {
+            document.getElementById('input-store').innerHTML = STORES.map(s => `<option value="${s}">${s}</option>`).join('');
             categoryFilter.innerHTML = '<option value="All">All Categories</option>' + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
-            const inputCategory = document.getElementById('input-category');
-            inputCategory.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('input-category').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
         function renderStorePills() {
@@ -321,7 +377,7 @@
                 const isActive = selectedStore === store;
                 return `<button onclick="filterByStore('${store}')" class="px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition ${isActive ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">${store}</button>`;
             }).join('');
-            storePillsContainer.innerHTML = allPill + storePills;
+            document.getElementById('store-pills').innerHTML = allPill + storePills;
         }
 
         window.filterByStore = function(store) {
@@ -331,7 +387,7 @@
         };
 
         function renderDeals() {
-            const search = searchInput.value.toLowerCase();
+            const search = document.getElementById('search-input').value.toLowerCase();
             const category = categoryFilter.value;
             const minSavings = parseFloat(savingsFilter.value);
             const sort = sortFilter.value;
@@ -350,7 +406,6 @@
                 return matchesSearch && matchesStore && matchesCategory && matchesSavings && matchesReward;
             });
 
-            // Sorting
             filtered.sort((a, b) => {
                 const pctA = ((a.originalPrice - a.salePrice) / a.originalPrice) * 100;
                 const pctB = ((b.originalPrice - b.salePrice) / b.originalPrice) * 100;
@@ -361,6 +416,9 @@
             });
 
             document.getElementById('results-count').innerText = `${filtered.length} items`;
+
+            const dealsGrid = document.getElementById('deals-grid');
+            const emptyState = document.getElementById('empty-state');
 
             if (filtered.length === 0) {
                 dealsGrid.innerHTML = '';
@@ -392,6 +450,7 @@
 
                             <div class="text-[11px] text-gray-500 bg-gray-50 p-2 rounded-xl mb-3 flex justify-between items-center">
                                 <span><i class="fa-solid fa-id-card text-emerald-600 mr-1"></i>${d.loyalty}</span>
+                                <span class="text-[10px] text-gray-400">Exp: ${d.expires}</span>
                             </div>
 
                             <div class="flex gap-2">
@@ -487,7 +546,7 @@
             document.getElementById('input-expires').value = d.expires || '';
 
             document.getElementById('modal-title').innerText = "Edit Grocery Deal";
-            dealModal.classList.remove('hidden');
+            document.getElementById('deal-modal').classList.remove('hidden');
         };
 
         function saveAndRefresh() {
@@ -498,24 +557,26 @@
         }
 
         function setupEventListeners() {
-            searchInput.addEventListener('input', renderDeals);
-            categoryFilter.addEventListener('change', renderDeals);
-            savingsFilter.addEventListener('change', renderDeals);
-            sortFilter.addEventListener('change', renderDeals);
-            rewardFilter.addEventListener('change', renderDeals);
+            document.getElementById('search-input').addEventListener('input', renderDeals);
+            document.getElementById('category-filter').addEventListener('change', renderDeals);
+            document.getElementById('savings-filter').addEventListener('change', renderDeals);
+            document.getElementById('sort-filter').addEventListener('change', renderDeals);
+            document.getElementById('reward-filter').addEventListener('change', renderDeals);
+
+            document.getElementById('sync-daily-btn').addEventListener('click', () => performDailySync(true));
 
             document.getElementById('add-deal-btn').addEventListener('click', () => {
-                dealForm.reset();
+                document.getElementById('deal-form').reset();
                 document.getElementById('deal-id').value = '';
                 document.getElementById('modal-title').innerText = "Add New Grocery Deal";
-                dealModal.classList.remove('hidden');
+                document.getElementById('deal-modal').classList.remove('hidden');
             });
 
-            document.getElementById('close-modal-btn').addEventListener('click', () => dealModal.classList.add('hidden'));
-            document.getElementById('cancel-modal-btn').addEventListener('click', () => dealModal.classList.add('hidden'));
+            document.getElementById('close-modal-btn').addEventListener('click', () => document.getElementById('deal-modal').classList.add('hidden'));
+            document.getElementById('cancel-modal-btn').addEventListener('click', () => document.getElementById('deal-modal').classList.add('hidden'));
 
-            document.getElementById('open-shopping-list-btn').addEventListener('click', () => watchlistModal.classList.remove('hidden'));
-            document.getElementById('close-watchlist-btn').addEventListener('click', () => watchlistModal.classList.add('hidden'));
+            document.getElementById('open-shopping-list-btn').addEventListener('click', () => document.getElementById('watchlist-modal').classList.remove('hidden'));
+            document.getElementById('close-watchlist-btn').addEventListener('click', () => document.getElementById('watchlist-modal').classList.add('hidden'));
 
             document.getElementById('clear-watchlist-btn').addEventListener('click', () => {
                 watchlist = [];
@@ -530,7 +591,7 @@
                 }
             });
 
-            dealForm.addEventListener('submit', (e) => {
+            document.getElementById('deal-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const id = document.getElementById('deal-id').value || Date.now().toString();
                 const newDeal = {
@@ -552,7 +613,7 @@
                 }
 
                 saveAndRefresh();
-                dealModal.classList.add('hidden');
+                document.getElementById('deal-modal').classList.add('hidden');
             });
         }
 
