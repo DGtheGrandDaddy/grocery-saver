@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grocery Saver - Store Discount Tracker</title>
+    <title>Grocery Saver & Unit Price Optimizer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -11,611 +11,793 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-active { border-bottom: 3px solid #047857; color: #047857; font-weight: 700; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen pb-12">
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen pb-16">
 
-    <!-- Header -->
-    <header class="bg-emerald-700 text-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-emerald-700 p-2.5 rounded-xl text-xl font-bold shadow">
-                    <i class="fa-solid fa-cart-shopping"></i>
+    <!-- Header Navigation -->
+    <header class="bg-emerald-800 text-white shadow-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-amber-400 text-emerald-950 p-2 rounded-xl text-xl font-black shadow-inner">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-black tracking-tight leading-none">Grocery Saver</h1>
+                        <p class="text-[11px] text-emerald-200 mt-0.5">Unit Price Optimizer & Multi-Store Basket Planner</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-2xl font-black tracking-tight">Grocery Saver</h1>
-                    <p class="text-xs text-emerald-100">Live USA Grocery Deals & Daily Discount Tracker</p>
-                </div>
+
+                <!-- Watchlist Quick Trigger (Mobile View) -->
+                <button id="mobile-basket-btn" class="md:hidden flex items-center gap-1.5 bg-amber-400 text-amber-950 font-bold px-3 py-1.5 rounded-lg text-xs shadow">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                    <span id="watchlist-count-mobile">0</span>
+                </button>
             </div>
 
-            <!-- Quick Stats & Sync Header -->
-            <div class="flex items-center gap-3 bg-emerald-800/80 px-4 py-2 rounded-xl text-sm border border-emerald-600/50">
-                <div class="text-center px-1">
-                    <span class="block text-[10px] uppercase tracking-wider text-emerald-200">Active Deals</span>
-                    <span id="stat-total-deals" class="font-bold text-base">0</span>
+            <!-- Global Quick Stats & Navigation Pills -->
+            <div class="flex items-center gap-2 w-full md:w-auto justify-between overflow-x-auto hide-scrollbar text-xs">
+                <div class="bg-emerald-900/80 px-3 py-1.5 rounded-xl border border-emerald-700/50 flex items-center gap-3 whitespace-nowrap">
+                    <div>
+                        <span class="block text-[9px] uppercase tracking-wider text-emerald-300">Catalog Database</span>
+                        <span id="stat-total-items" class="font-bold text-sm text-white">0</span>
+                    </div>
+                    <div class="h-6 w-px bg-emerald-700"></div>
+                    <div>
+                        <span class="block text-[9px] uppercase tracking-wider text-emerald-300">Store Chains</span>
+                        <span id="stat-total-stores" class="font-bold text-sm text-amber-300">19</span>
+                    </div>
                 </div>
-                <div class="h-7 w-px bg-emerald-600"></div>
-                <div class="text-center px-1">
-                    <span class="block text-[10px] uppercase tracking-wider text-emerald-200">Avg Savings</span>
-                    <span id="stat-avg-savings" class="font-bold text-base text-amber-300">0%</span>
-                </div>
-                <div class="h-7 w-px bg-emerald-600"></div>
-                
-                <!-- Daily Refresh Button -->
-                <button id="sync-daily-btn" title="Sync Today's Store Circulars" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded-lg transition text-xs border border-emerald-400/30 shadow-sm">
-                    <i class="fa-solid fa-arrows-rotate" id="sync-icon"></i>
-                    <span>Sync Today</span>
-                </button>
 
-                <button id="open-shopping-list-btn" class="flex items-center gap-1.5 bg-amber-400 text-amber-950 font-bold px-3 py-1.5 rounded-lg hover:bg-amber-300 transition text-xs shadow">
-                    <i class="fa-solid fa-list-check"></i>
-                    <span>Watchlist</span>
+                <button id="open-basket-btn" class="hidden md:flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold px-3.5 py-2 rounded-xl transition text-xs shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-basket-shopping"></i>
+                    <span>Basket Optimizer</span>
                     <span id="watchlist-count" class="bg-amber-950 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full">0</span>
                 </button>
             </div>
         </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="bg-emerald-900/90 border-t border-emerald-700/60 px-4">
+            <div class="max-w-7xl mx-auto flex gap-6 text-xs text-emerald-100 font-medium overflow-x-auto hide-scrollbar">
+                <button id="tab-btn-catalog" onclick="switchView('catalog')" class="py-2.5 px-1 tab-active flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Cross-Store Catalog Search</span>
+                </button>
+                <button id="tab-btn-aisle" onclick="switchView('aisle')" class="py-2.5 px-1 text-emerald-200 hover:text-white flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-scale-balanced text-amber-300"></i>
+                    <span>Aisle Price Match Calculator</span>
+                </button>
+                <button id="tab-btn-basket" onclick="switchView('basket')" class="py-2.5 px-1 text-emerald-200 hover:text-white flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-route text-amber-300"></i>
+                    <span>Multi-Store Trip Planner</span>
+                </button>
+            </div>
+        </nav>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
 
-        <!-- Sync Alert Bar -->
-        <div id="sync-status-bar" class="hidden bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex justify-between items-center text-xs text-emerald-900">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
-                <span id="sync-status-text">Store circulars synced for today. Next auto-update scheduled in 24 hours.</span>
-            </div>
-            <span id="last-sync-time" class="text-[10px] text-emerald-600 font-semibold uppercase">Updated Today</span>
-        </div>
+        <!-- ================= VIEW 1: CATALOG SEARCH & COMPARE ================= -->
+        <section id="view-catalog" class="space-y-6">
 
-        <!-- Controls Bar -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 space-y-4">
-            
-            <!-- Search & Action Buttons -->
-            <div class="flex flex-col md:flex-row gap-3 justify-between">
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400"></i>
-                    <input type="text" id="search-input" placeholder="Search deals (e.g. Stonyfield, pizza, turkey, wings, coffee)..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition text-sm">
+            <!-- Filter Controls -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 space-y-4">
+                <div class="flex flex-col md:flex-row gap-3 justify-between">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400"></i>
+                        <input type="text" id="catalog-search" placeholder="Search catalog (e.g. yogurt, pizza, ground turkey, chicken breasts, coffee)..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition text-sm">
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="add-item-btn" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-sm whitespace-nowrap">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Add Custom Store Price</span>
+                        </button>
+                        <button id="reset-catalog-btn" title="Reset Default Database" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-2.5 rounded-xl transition text-xs border border-gray-300">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="flex gap-2">
-                    <button id="add-deal-btn" class="flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-sm">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Add New Deal</span>
-                    </button>
-                    <button id="reset-defaults-btn" title="Reset Default Deals" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-2.5 rounded-xl transition text-sm border border-gray-300">
-                        <i class="fa-solid fa-rotate-right"></i>
-                    </button>
+                <!-- Retailer Filter Pills -->
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-gray-400 tracking-wider block mb-2">Filter By Store Chain (19 Stores)</span>
+                    <div id="store-pills-container" class="flex gap-2 overflow-x-auto pb-1 hide-scrollbar text-xs">
+                        <!-- Store pills inserted dynamically -->
+                    </div>
+                </div>
+
+                <!-- Category & Unit Sorting Filters -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-gray-100 text-xs">
+                    <div>
+                        <label class="block font-medium text-gray-500 mb-1">Category</label>
+                        <select id="filter-category" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:outline-none">
+                            <option value="All">All Categories</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-500 mb-1">Sort Metric</label>
+                        <select id="filter-sort" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:outline-none">
+                            <option value="unit-asc">Lowest Unit Price ($/oz or $/lb)</option>
+                            <option value="price-asc">Lowest Sticker Price ($)</option>
+                            <option value="savings-desc">Highest % Discount</option>
+                            <option value="store-asc">Store Name (A-Z)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-500 mb-1">Special Filter</label>
+                        <select id="filter-deals-only" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:outline-none">
+                            <option value="All">Show All Items (Regular & Sale)</option>
+                            <option value="SaleOnly">On Sale Items Only</option>
+                            <option value="BulkOnly">Bulk & Family Packs Only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-500 mb-1">Unit Type</label>
+                        <select id="filter-unit-type" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:outline-none">
+                            <option value="All">All Standardized Units</option>
+                            <option value="oz">Weight (oz / lb)</option>
+                            <option value="floz">Volume (fl oz)</option>
+                            <option value="ct">Count / Serving (ct)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <!-- Retailer Filter Pills -->
+            <!-- Results Grid -->
             <div>
-                <span class="text-xs font-bold uppercase text-gray-400 tracking-wider block mb-2">Filter By USA Retailer</span>
-                <div id="store-pills" class="flex gap-2 overflow-x-auto pb-1 hide-scrollbar text-xs">
-                    <!-- Dynamic store pills inserted here -->
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <span>Database Matches</span>
+                        <span id="catalog-count" class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">0 items</span>
+                    </h2>
+                    <span class="text-xs text-gray-500 italic">Unit prices automatically normalized for side-by-side comparison</span>
                 </div>
-            </div>
 
-            <!-- Category & Threshold Filters -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-gray-100">
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
-                    <select id="category-filter" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg text-xs focus:ring-emerald-500 focus:outline-none">
-                        <option value="All">All Categories</option>
-                    </select>
+                <div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic Catalog Cards -->
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Min Savings %</label>
-                    <select id="savings-filter" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg text-xs focus:ring-emerald-500 focus:outline-none">
-                        <option value="0">All Deals</option>
-                        <option value="25">≥ 25% Off</option>
-                        <option value="40">≥ 40% Off</option>
-                        <option value="50">≥ 50% Off (Hot Deals)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Sort By</label>
-                    <select id="sort-filter" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg text-xs focus:ring-emerald-500 focus:outline-none">
-                        <option value="savings-desc">Highest % Savings</option>
-                        <option value="price-asc">Lowest Price ($)</option>
-                        <option value="store-asc">Store Name</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Reward Programs</label>
-                    <select id="reward-filter" class="w-full p-2 bg-gray-50 border border-gray-300 rounded-lg text-xs focus:ring-emerald-500 focus:outline-none">
-                        <option value="All">All Loyalty Types</option>
-                        <option value="Loyalty Required">Loyalty Card Required</option>
-                        <option value="Digital Coupon">Digital Coupon Needed</option>
-                        <option value="No Loyalty Needed">Instant / Everyday Low Price</option>
-                    </select>
-                </div>
-            </div>
-        </div>
 
-        <!-- Deals Grid -->
-        <div>
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <span>Active Store Deals</span>
-                    <span id="results-count" class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-normal">0 items</span>
-                </h2>
+                <div id="catalog-empty" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
+                    <i class="fa-solid fa-basket-shopping text-gray-300 text-4xl mb-2"></i>
+                    <p class="text-sm text-gray-500 font-medium">No grocery items found matching your filters.</p>
+                </div>
             </div>
+        </section>
 
-            <div id="deals-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Deal Cards Inserted Dynamically -->
-            </div>
+        <!-- ================= VIEW 2: AISLE PRICE MATCH CALCULATOR ================= -->
+        <section id="view-aisle" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-scale-balanced text-emerald-700"></i>
+                            <span>In-Aisle Unit Price Calculator</span>
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Compare package sizes instantly while standing in the store aisle to find the true value winner.</p>
+                    </div>
+                    <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">Instant Calculation</span>
+                </div>
 
-            <!-- Empty State -->
-            <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300 my-4">
-                <div class="text-gray-400 text-4xl mb-3"><i class="fa-solid fa-basket-shopping"></i></div>
-                <h3 class="text-lg font-bold text-gray-700 mb-1">No deals found</h3>
-                <p class="text-sm text-gray-500 max-w-sm mx-auto">Try clearing your filters or click "Sync Today" to pull updated discounts.</p>
+                <!-- Comparison Form Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Option A -->
+                    <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-200/80 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold bg-emerald-700 text-white px-2.5 py-1 rounded-md uppercase tracking-wider">Option A (e.g. ShopRite)</span>
+                            <span id="aisle-winner-a" class="hidden text-xs font-black text-emerald-700 bg-emerald-200 px-2 py-0.5 rounded-full"><i class="fa-solid fa-trophy mr-1"></i>BEST VALUE</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Item / Brand Name</label>
+                            <input type="text" id="aisle-name-a" value="Frozen Chicken Nuggets" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Sticker Price ($)</label>
+                                <input type="number" step="0.01" id="aisle-price-a" value="4.99" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none font-bold text-gray-900" oninput="calculateAisleComparison()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Net Weight / Quantity</label>
+                                <input type="number" step="0.1" id="aisle-size-a" value="22" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none font-bold text-gray-900" oninput="calculateAisleComparison()">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Unit Measurement</label>
+                                <select id="aisle-unit-a" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none" onchange="calculateAisleComparison()">
+                                    <option value="oz">Ounces (oz)</option>
+                                    <option value="lb">Pounds (lbs)</option>
+                                    <option value="floz">Fluid Ounces (fl oz)</option>
+                                    <option value="g">Grams (g)</option>
+                                    <option value="kg">Kilograms (kg)</option>
+                                    <option value="ct">Count / Pieces (ct)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Servings per Pack (Optional)</label>
+                                <input type="number" step="1" id="aisle-servings-a" value="7" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none" oninput="calculateAisleComparison()">
+                            </div>
+                        </div>
+
+                        <!-- Computed Result Cards Option A -->
+                        <div class="bg-white p-3.5 rounded-xl border border-emerald-200 space-y-1.5">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">Standardized Unit Price:</span>
+                                <span id="aisle-unit-price-a" class="font-black text-emerald-800 text-sm">$0.00 / oz</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">Normalized $/lb:</span>
+                                <span id="aisle-lb-price-a" class="font-bold text-gray-700">$0.00 / lb</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">Cost Per Serving:</span>
+                                <span id="aisle-serving-price-a" class="font-bold text-gray-700">$0.00 / serving</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Option B -->
+                    <div class="bg-amber-50/50 p-5 rounded-2xl border border-amber-200/80 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold bg-amber-600 text-white px-2.5 py-1 rounded-md uppercase tracking-wider">Option B (e.g. Walmart)</span>
+                            <span id="aisle-winner-b" class="hidden text-xs font-black text-emerald-700 bg-emerald-200 px-2 py-0.5 rounded-full"><i class="fa-solid fa-trophy mr-1"></i>BEST VALUE</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Item / Brand Name</label>
+                            <input type="text" id="aisle-name-b" value="Value Pack Chicken Nuggets" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Sticker Price ($)</label>
+                                <input type="number" step="0.01" id="aisle-price-b" value="5.39" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none font-bold text-gray-900" oninput="calculateAisleComparison()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Net Weight / Quantity</label>
+                                <input type="number" step="0.1" id="aisle-size-b" value="28" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none font-bold text-gray-900" oninput="calculateAisleComparison()">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Unit Measurement</label>
+                                <select id="aisle-unit-b" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none" onchange="calculateAisleComparison()">
+                                    <option value="oz">Ounces (oz)</option>
+                                    <option value="lb">Pounds (lbs)</option>
+                                    <option value="floz">Fluid Ounces (fl oz)</option>
+                                    <option value="g">Grams (g)</option>
+                                    <option value="kg">Kilograms (kg)</option>
+                                    <option value="ct">Count / Pieces (ct)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Servings per Pack (Optional)</label>
+                                <input type="number" step="1" id="aisle-servings-b" value="9" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none" oninput="calculateAisleComparison()">
+                            </div>
+                        </div>
+
+                        <!-- Computed Result Cards Option B -->
+                        <div class="bg-white p-3.5 rounded-xl border border-amber-200 space-y-1.5">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">Standardized Unit Price:</span>
+                                <span id="aisle-unit-price-b" class="font-black text-emerald-800 text-sm">$0.00 / oz</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">Normalized $/lb:</span>
+                                <span id="aisle-lb-price-b" class="font-bold text-gray-700">$0.00 / lb</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-gray-500">Cost Per Serving:</span>
+                                <span id="aisle-serving-price-b" class="font-bold text-gray-700">$0.00 / serving</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Verdict Banner -->
+                <div id="aisle-verdict-card" class="mt-6 p-4 rounded-2xl bg-emerald-900 text-white flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-amber-400 text-emerald-950 p-3 rounded-xl text-xl font-black">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-amber-300 tracking-wider block">Comparison Verdict</span>
+                            <h3 id="aisle-verdict-title" class="text-lg font-bold">Option B is 15.2% Cheaper per Ounce</h3>
+                            <p id="aisle-verdict-desc" class="text-xs text-emerald-100">Option B costs $0.19/oz compared to $0.23/oz for Option A. You save $0.04 for every ounce purchased.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </section>
+
+        <!-- ================= VIEW 3: MULTI-STORE TRIP PLANNER ================= -->
+        <section id="view-basket" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
+                <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-route text-emerald-700"></i>
+                            <span>Multi-Store Shopping Basket Optimizer</span>
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Compares your saved target grocery list against all 19 grocers to find your cheapest total trip route.</p>
+                    </div>
+                    <button onclick="clearWatchlist()" class="text-xs text-red-600 hover:text-red-800 font-semibold border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition">
+                        Clear Basket
+                    </button>
+                </div>
+
+                <!-- Basket Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Left: Selected Items List -->
+                    <div class="lg:col-span-1 space-y-3">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Your Shopping List (<span id="basket-item-count">0</span>)</h3>
+                        <div id="basket-items-list" class="space-y-2 max-h-[500px] overflow-y-auto pr-1 hide-scrollbar">
+                            <!-- Basket items dynamically inserted -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Cross-Store Analytics Engine -->
+                    <div class="lg:col-span-2 space-y-6">
+                        
+                        <!-- Recommendation Banner -->
+                        <div id="basket-route-banner" class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-emerald-800 uppercase tracking-wide flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                                    <span>Optimal Single-Store Route</span>
+                                </span>
+                                <span id="best-store-name" class="bg-emerald-700 text-white font-bold text-xs px-2.5 py-1 rounded-md">ShopRite</span>
+                            </div>
+                            <div class="flex justify-between items-baseline">
+                                <div>
+                                    <span class="text-2xl font-black text-emerald-900" id="best-store-cost">$0.00</span>
+                                    <span class="text-xs text-emerald-700 ml-1">total basket cost</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs font-bold text-amber-700" id="best-store-savings">Saves $0.00 vs average</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Store Breakdown Matrix -->
+                        <div>
+                            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Total Estimated Basket Cost By Store</h3>
+                            <div id="store-comparison-matrix" class="space-y-2">
+                                <!-- Matrix dynamic bars -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Watchlist Drawer -->
-    <div id="watchlist-modal" class="fixed inset-0 bg-black/50 z-50 flex justify-end hidden">
-        <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col">
-            <div class="p-4 bg-emerald-700 text-white flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-amber-300"></i>
-                    <h2 class="font-bold text-lg">Target Shopping List</h2>
-                </div>
-                <button id="close-watchlist-btn" class="text-emerald-100 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+    <!-- Modal: Add Custom Price Item -->
+    <div id="add-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-4 bg-emerald-800 text-white flex justify-between items-center">
+                <h3 class="font-bold text-sm">Add Custom Store Price</h3>
+                <button onclick="closeModal()" class="text-emerald-100 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-            <div id="watchlist-items" class="flex-1 overflow-y-auto p-4 space-y-3">
-                <!-- Watchlist items -->
-            </div>
-
-            <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-2">
-                <div class="flex justify-between text-sm text-gray-600">
-                    <span>Total Projected Cost:</span>
-                    <span id="watchlist-total-cost" class="font-bold text-gray-900">$0.00</span>
-                </div>
-                <div class="flex justify-between text-sm text-emerald-600">
-                    <span>Total Estimated Savings:</span>
-                    <span id="watchlist-total-savings" class="font-bold">$0.00</span>
-                </div>
-                <button id="clear-watchlist-btn" class="w-full mt-2 py-2 text-xs text-red-600 font-semibold hover:bg-red-50 rounded-lg transition border border-red-200">
-                    Clear Shopping List
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add/Edit Modal -->
-    <div id="deal-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden">
-            <div class="p-4 bg-emerald-700 text-white flex justify-between items-center">
-                <h3 id="modal-title" class="font-bold text-lg">Add New Grocery Deal</h3>
-                <button id="close-modal-btn" class="text-emerald-100 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-
-            <form id="deal-form" class="p-5 space-y-4">
-                <input type="hidden" id="deal-id">
-
+            <form id="add-item-form" class="p-5 space-y-3 text-xs">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Store / Chain *</label>
-                        <select id="input-store" required class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
-                        </select>
+                        <label class="block font-semibold text-gray-700 mb-1">Store Chain *</label>
+                        <select id="modal-store" required class="w-full p-2.5 bg-gray-50 border rounded-xl"></select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Category *</label>
-                        <select id="input-category" required class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
-                        </select>
+                        <label class="block font-semibold text-gray-700 mb-1">Category *</label>
+                        <select id="modal-category" required class="w-full p-2.5 bg-gray-50 border rounded-xl"></select>
                     </div>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Item Description *</label>
-                    <input type="text" id="input-title" required placeholder="e.g. Stonyfield Organic Probiotic Vanilla Yogurt, 32 oz" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                    <label class="block font-semibold text-gray-700 mb-1">Product Description *</label>
+                    <input type="text" id="modal-title" required placeholder="e.g. Stonyfield Organic Vanilla Yogurt 32 oz" class="w-full p-2.5 bg-gray-50 border rounded-xl">
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Sale Price ($) *</label>
-                        <input type="number" step="0.01" id="input-sale-price" required placeholder="4.49" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                        <label class="block font-semibold text-gray-700 mb-1">Sticker Price ($) *</label>
+                        <input type="number" step="0.01" id="modal-price" required placeholder="4.49" class="w-full p-2.5 bg-gray-50 border rounded-xl">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Original Price ($) *</label>
-                        <input type="number" step="0.01" id="input-original-price" required placeholder="5.69" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
+                        <label class="block font-semibold text-gray-700 mb-1">Net Weight/Qty *</label>
+                        <input type="number" step="0.1" id="modal-size" required placeholder="32" class="w-full p-2.5 bg-gray-50 border rounded-xl">
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Loyalty Program</label>
-                        <select id="input-loyalty" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
-                            <option value="No Loyalty Needed">No Loyalty Needed</option>
-                            <option value="My Hannaford Rewards">My Hannaford Rewards</option>
-                            <option value="DG Digital Coupons">DG Digital Coupons</option>
-                            <option value="Price Plus Club">ShopRite Price Plus</option>
-                            <option value="GO Rewards">Stop & Shop GO Rewards</option>
-                            <option value="ExtraCare Member">CVS ExtraCare</option>
-                            <option value="myWalgreens">myWalgreens</option>
-                            <option value="AdvantEdge">Market 32 / Price Chopper</option>
-                            <option value="Tops BonusPlus">Tops BonusPlus</option>
-                            <option value="Club Member">Sam's Club Membership</option>
+                        <label class="block font-semibold text-gray-700 mb-1">Unit *</label>
+                        <select id="modal-unit" class="w-full p-2.5 bg-gray-50 border rounded-xl">
+                            <option value="oz">Ounces (oz)</option>
+                            <option value="lb">Pounds (lb)</option>
+                            <option value="floz">Fluid Oz (fl oz)</option>
+                            <option value="g">Grams (g)</option>
+                            <option value="ct">Count (ct)</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Expiration Date</label>
-                        <input type="date" id="input-expires" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:ring-emerald-500 focus:outline-none">
-                    </div>
                 </div>
-
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" id="cancel-modal-btn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow">Save Deal</button>
+                <div class="flex justify-end gap-2 pt-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-100 font-semibold rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-700 text-white font-semibold rounded-xl shadow">Save to Database</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Application JavaScript Code -->
+    <!-- Application JavaScript -->
     <script>
         const STORES = [
-            "Walmart", "Dollar General", "Dollar Tree", "Sam’s Club", "Aldi", 
-            "ShopRite", "Hannaford", "Stop & Shop", "Acme", "Tops", 
-            "CVS", "Walgreens", "Price Chopper", "Market 32"
+            "Walmart", "ShopRite", "Hannaford", "Stop & Shop", "Aldi", 
+            "Sam’s Club", "Costco", "BJ’s", "Dollar General", "Dollar Tree", 
+            "CVS", "Walgreens", "Acme", "Tops", "Market 32", 
+            "Wegmans", "Target", "Whole Foods", "Trader Joe's"
         ];
 
         const CATEGORIES = [
-            "Dairy & Eggs", "Frozen Meals & Pizza", "Meats & High-Protein", 
-            "Pantry & Snacks", "Beverages", "Household & Health"
+            "Dairy & Yogurt", "Frozen Meals & Pizza", "Meats & High-Protein", 
+            "Pantry & Tacos", "Beverages & Coffee", "Snacks & Household"
         ];
 
-        function getFutureDate(daysAhead) {
-            const d = new Date();
-            d.setDate(d.getDate() + daysAhead);
-            return d.toISOString().split('T')[0];
-        }
+        // Database with items normalized across store chains
+        const INITIAL_CATALOG = [
+            // Yogurt & Dairy
+            { id: "c1", title: "Stonyfield Organic Probiotic Whole Milk Vanilla Yogurt (32 oz)", store: "Hannaford", category: "Dairy & Yogurt", price: 4.49, originalPrice: 5.69, size: 32, unit: "oz", servings: 4, isSale: true },
+            { id: "c2", title: "Stonyfield Organic Vanilla Yogurt (32 oz)", store: "ShopRite", category: "Dairy & Yogurt", price: 4.29, originalPrice: 5.49, size: 32, unit: "oz", servings: 4, isSale: true },
+            { id: "c3", title: "Stonyfield Organic Whole Milk Yogurt (32 oz)", store: "Walmart", category: "Dairy & Yogurt", price: 4.58, originalPrice: 4.58, size: 32, unit: "oz", servings: 4, isSale: false },
+            { id: "c4", title: "Stonyfield Organic Plain Yogurt (32 oz)", store: "Target", category: "Dairy & Yogurt", price: 4.69, originalPrice: 4.69, size: 32, unit: "oz", servings: 4, isSale: false },
+            { id: "c5", title: "Greek Whole Milk Plain Yogurt (32 oz)", store: "Trader Joe's", category: "Dairy & Yogurt", price: 3.99, originalPrice: 3.99, size: 32, unit: "oz", servings: 4, isSale: false },
+            { id: "c6", title: "365 Organic Plain Whole Milk Greek Yogurt (32 oz)", store: "Whole Foods", category: "Dairy & Yogurt", price: 4.79, originalPrice: 4.79, size: 32, unit: "oz", servings: 4, isSale: false },
+            { id: "c7", title: "Wegmans Organic Greek Yogurt Plain (32 oz)", store: "Wegmans", category: "Dairy & Yogurt", price: 4.19, originalPrice: 4.19, size: 32, unit: "oz", servings: 4, isSale: false },
+            { id: "c8", title: "Chobani Zero Sugar Greek Yogurt (5.3 oz)", store: "Hannaford", category: "Dairy & Yogurt", price: 1.00, originalPrice: 1.59, size: 5.3, unit: "oz", servings: 1, isSale: true },
+            { id: "c9", title: "Chobani Less Sugar Greek Yogurt (5.3 oz)", store: "ShopRite", category: "Dairy & Yogurt", price: 0.99, originalPrice: 1.49, size: 5.3, unit: "oz", servings: 1, isSale: true },
 
-        const INITIAL_DEALS = [
-            // Stonyfield & Dairy
-            { id: "y1", title: "Stonyfield Organic Probiotic Whole Milk Vanilla Yogurt (32 oz Tub)", store: "Hannaford", category: "Dairy & Eggs", salePrice: 4.49, originalPrice: 5.69, loyalty: "My Hannaford Rewards", expires: getFutureDate(7) },
-            { id: "y2", title: "Stonyfield Organic Probiotic Plain Whole Milk Yogurt (32 oz Tub)", store: "Hannaford", category: "Dairy & Eggs", salePrice: 4.49, originalPrice: 5.69, loyalty: "My Hannaford Rewards", expires: getFutureDate(7) },
-            { id: "y3", title: "Chobani Less Sugar / Zero Sugar Greek Yogurt (5.3 oz)", store: "Hannaford", category: "Dairy & Eggs", salePrice: 1.00, originalPrice: 1.59, loyalty: "My Hannaford Rewards", expires: getFutureDate(5) },
-            { id: "y4", title: "Fage Total 0% Plain Greek Yogurt (32 oz)", store: "Stop & Shop", category: "Dairy & Eggs", salePrice: 5.29, originalPrice: 6.79, loyalty: "GO Rewards", expires: getFutureDate(6) },
-            { id: "y5", title: "Dannon Light & Fit Greek Yogurt 4-Pack", store: "ShopRite", category: "Dairy & Eggs", salePrice: 3.49, originalPrice: 4.79, loyalty: "Price Plus Club", expires: getFutureDate(4) },
-            { id: "y6", title: "Chobani Zero Sugar Greek Yogurt", store: "Price Chopper", category: "Dairy & Eggs", salePrice: 0.99, originalPrice: 1.69, loyalty: "AdvantEdge", expires: getFutureDate(3) },
-            { id: "y7", title: "Friendly Farms Nonfat Plain Greek Yogurt (32 oz)", store: "Aldi", category: "Dairy & Eggs", salePrice: 3.29, originalPrice: 4.19, loyalty: "No Loyalty Needed", expires: getFutureDate(10) },
-
-            // Frozen Pizzas & Meals
-            { id: "p1", title: "Celeste Pizza For One (Mama's Personal)", store: "Dollar Tree", category: "Frozen Meals & Pizza", salePrice: 1.25, originalPrice: 2.19, loyalty: "No Loyalty Needed", expires: getFutureDate(14) },
-            { id: "p2", title: "Totino's Party Pizza (Pepperoni/Cheese)", store: "Walmart", category: "Frozen Meals & Pizza", salePrice: 1.48, originalPrice: 2.28, loyalty: "No Loyalty Needed", expires: getFutureDate(12) },
-            { id: "p3", title: "Celeste Microwave Single Pizza", store: "ShopRite", category: "Frozen Meals & Pizza", salePrice: 1.00, originalPrice: 1.99, loyalty: "Price Plus Club", expires: getFutureDate(4) },
-            { id: "p4", title: "Celeste Personal Frozen Pizza", store: "Dollar General", category: "Frozen Meals & Pizza", salePrice: 1.00, originalPrice: 1.75, loyalty: "DG Digital Coupons", expires: getFutureDate(6) },
-            { id: "p5", title: "Member's Mark Mini Deep Dish Pizzas (12-pk)", store: "Sam’s Club", category: "Frozen Meals & Pizza", salePrice: 11.98, originalPrice: 15.98, loyalty: "Club Member", expires: getFutureDate(15) },
-            { id: "p6", title: "Mama Cozzi's French Bread Pizza (2-pk)", store: "Aldi", category: "Frozen Meals & Pizza", salePrice: 2.49, originalPrice: 3.29, loyalty: "No Loyalty Needed", expires: getFutureDate(8) },
+            // Frozen Pizzas & Chicken
+            { id: "c10", title: "Celeste Personal Frozen Pizza (Pepperoni)", store: "Dollar Tree", category: "Frozen Meals & Pizza", price: 1.25, originalPrice: 2.19, size: 5, unit: "oz", servings: 1, isSale: true },
+            { id: "c11", title: "Celeste Pizza For One", store: "ShopRite", category: "Frozen Meals & Pizza", price: 1.00, originalPrice: 1.99, size: 5, unit: "oz", servings: 1, isSale: true },
+            { id: "c12", title: "Celeste Personal Pizza", store: "Dollar General", category: "Frozen Meals & Pizza", price: 1.00, originalPrice: 1.75, size: 5, unit: "oz", servings: 1, isSale: true },
+            { id: "c13", title: "Frozen Crispy Chicken Nuggets (22 oz Bag)", store: "ShopRite", category: "Meats & High-Protein", price: 4.99, originalPrice: 6.29, size: 22, unit: "oz", servings: 7, isSale: true },
+            { id: "c14", title: "Value Pack Chicken Nuggets (28 oz Bag)", store: "Walmart", category: "Meats & High-Protein", price: 5.39, originalPrice: 5.39, size: 28, unit: "oz", servings: 9, isSale: false },
+            { id: "c15", title: "Bulk Frozen Chicken Nuggets (5 lbs)", store: "Sam’s Club", category: "Meats & High-Protein", price: 12.98, originalPrice: 14.98, size: 80, unit: "oz", servings: 25, isSale: true },
+            { id: "c16", title: "Kirkland Organic Chicken Breast (4 lbs)", store: "Costco", category: "Meats & High-Protein", price: 14.99, originalPrice: 14.99, size: 64, unit: "oz", servings: 16, isSale: false },
 
             // Meats & High-Protein
-            { id: "m1", title: "Boneless Skinless Chicken Breasts (Bulk)", store: "Aldi", category: "Meats & High-Protein", salePrice: 2.29, originalPrice: 3.49, loyalty: "No Loyalty Needed", expires: getFutureDate(4) },
-            { id: "m2", title: "Ground Turkey 93/7 Lean (16 oz)", store: "Hannaford", category: "Meats & High-Protein", salePrice: 3.49, originalPrice: 4.99, loyalty: "My Hannaford Rewards", expires: getFutureDate(5) },
-            { id: "m3", title: "Fresh Party Chicken Wings (Value Pack)", store: "ShopRite", category: "Meats & High-Protein", salePrice: 1.99, originalPrice: 3.99, loyalty: "Price Plus Club", expires: getFutureDate(3) },
-            { id: "m4", title: "Rotisserie Chicken Whole Cooked", store: "Stop & Shop", category: "Meats & High-Protein", salePrice: 5.99, originalPrice: 8.99, loyalty: "GO Rewards", expires: getFutureDate(5) }
+            { id: "c17", title: "Ground Turkey 93/7 Lean (16 oz)", store: "Hannaford", category: "Meats & High-Protein", price: 3.49, originalPrice: 4.99, size: 16, unit: "oz", servings: 4, isSale: true },
+            { id: "c18", title: "Fresh Party Wings (Value Pack)", store: "ShopRite", category: "Meats & High-Protein", price: 1.99, originalPrice: 3.99, size: 16, unit: "oz", servings: 4, isSale: true },
+            { id: "c19", title: "Boneless Skinless Chicken Breasts", store: "Aldi", category: "Meats & High-Protein", price: 2.29, originalPrice: 3.49, size: 16, unit: "oz", servings: 4, isSale: true },
+            { id: "c20", title: "Organic Ground Turkey 93/7 (16 oz)", store: "Trader Joe's", category: "Meats & High-Protein", price: 4.49, originalPrice: 4.49, size: 16, unit: "oz", servings: 4, isSale: false }
         ];
 
-        let deals = JSON.parse(localStorage.getItem('grocery_saver_deals')) || INITIAL_DEALS;
-        let watchlist = JSON.parse(localStorage.getItem('grocery_saver_watchlist')) || [];
-        let lastSyncTimestamp = localStorage.getItem('grocery_saver_last_sync') || null;
-        let selectedStore = "All";
+        let catalog = JSON.parse(localStorage.getItem('grocery_optimizer_catalog')) || INITIAL_CATALOG;
+        let watchlist = JSON.parse(localStorage.getItem('grocery_optimizer_watchlist')) || ["c1", "c13"];
+        let selectedStoreFilter = "All";
 
+        // Initialize
         function init() {
-            populateDropdowns();
-            renderStorePills();
-            checkAutoDailySync();
-            renderDeals();
-            updateStats();
-            setupEventListeners();
+            populatePillsAndDropdowns();
+            renderCatalog();
+            calculateAisleComparison();
+            renderBasketView();
+            setupEvents();
         }
 
-        // Daily Auto-Sync Engine Check (24 Hour TTL)
-        function checkAutoDailySync() {
-            const now = new Date().getTime();
-            const oneDayMs = 24 * 60 * 60 * 1000;
-
-            if (!lastSyncTimestamp || (now - parseInt(lastSyncTimestamp)) > oneDayMs) {
-                performDailySync(false);
-            } else {
-                showSyncStatus(new Date(parseInt(lastSyncTimestamp)));
-            }
+        // Standardize Unit Price ($/oz or $/lb)
+        function computeUnitPrice(price, size, unit) {
+            let ozSize = size;
+            if (unit === 'lb') ozSize = size * 16;
+            if (unit === 'g') ozSize = size * 0.035274;
+            if (unit === 'kg') ozSize = size * 35.274;
+            
+            const perOz = price / ozSize;
+            const perLb = perOz * 16;
+            return { perOz, perLb };
         }
 
-        function performDailySync(manualTrigger = true) {
-            const syncIcon = document.getElementById('sync-icon');
-            syncIcon.classList.add('fa-spin');
+        function populatePillsAndDropdowns() {
+            // Render 19 store pills
+            const pillsContainer = document.getElementById('store-pills-container');
+            let pillsHtml = `<button onclick="setStoreFilter('All')" class="px-3 py-1.5 rounded-full font-medium transition whitespace-nowrap ${selectedStoreFilter === 'All' ? 'bg-emerald-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">All 19 Stores</button>`;
+            
+            STORES.forEach(store => {
+                const active = selectedStoreFilter === store;
+                pillsHtml += `<button onclick="setStoreFilter('${store}')" class="px-3 py-1.5 rounded-full font-medium transition whitespace-nowrap ${active ? 'bg-emerald-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">${store}</button>`;
+            });
+            pillsContainer.innerHTML = pillsHtml;
 
-            setTimeout(() => {
-                // Update expiration dates to current rolling week
-                deals = deals.map(deal => ({
-                    ...deal,
-                    expires: getFutureDate(Math.floor(Math.random() * 6) + 2)
-                }));
+            // Populate Dropdowns
+            const catSelect = document.getElementById('filter-category');
+            catSelect.innerHTML = '<option value="All">All Categories</option>' + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
 
-                const now = new Date();
-                lastSyncTimestamp = now.getTime().toString();
-                localStorage.setItem('grocery_saver_last_sync', lastSyncTimestamp);
-                localStorage.setItem('grocery_saver_deals', JSON.stringify(deals));
-
-                syncIcon.classList.remove('fa-spin');
-                showSyncStatus(now);
-                renderDeals();
-                updateStats();
-
-                if (manualTrigger) {
-                    alert("Sync Complete! All 14 store circulars and product pricing synced for today.");
-                }
-            }, manualTrigger ? 600 : 100);
+            document.getElementById('modal-store').innerHTML = STORES.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.getElementById('modal-category').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
         }
 
-        function showSyncStatus(dateObj) {
-            const statusBar = document.getElementById('sync-status-bar');
-            const statusTime = document.getElementById('last-sync-time');
-            statusBar.classList.remove('hidden');
-            statusTime.innerText = `Synced ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        }
-
-        function populateDropdowns() {
-            document.getElementById('input-store').innerHTML = STORES.map(s => `<option value="${s}">${s}</option>`).join('');
-            categoryFilter.innerHTML = '<option value="All">All Categories</option>' + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
-            document.getElementById('input-category').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-
-        function renderStorePills() {
-            const allPill = `<button onclick="filterByStore('All')" class="px-3 py-1.5 rounded-full font-medium transition ${selectedStore === 'All' ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">All Stores</button>`;
-            const storePills = STORES.map(store => {
-                const isActive = selectedStore === store;
-                return `<button onclick="filterByStore('${store}')" class="px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition ${isActive ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">${store}</button>`;
-            }).join('');
-            document.getElementById('store-pills').innerHTML = allPill + storePills;
-        }
-
-        window.filterByStore = function(store) {
-            selectedStore = store;
-            renderStorePills();
-            renderDeals();
+        window.setStoreFilter = function(store) {
+            selectedStoreFilter = store;
+            populatePillsAndDropdowns();
+            renderCatalog();
         };
 
-        function renderDeals() {
-            const search = document.getElementById('search-input').value.toLowerCase();
-            const category = categoryFilter.value;
-            const minSavings = parseFloat(savingsFilter.value);
-            const sort = sortFilter.value;
-            const reward = rewardFilter.value;
+        function renderCatalog() {
+            const search = document.getElementById('catalog-search').value.toLowerCase();
+            const category = document.getElementById('filter-category').value;
+            const sort = document.getElementById('filter-sort').value;
+            const dealsOnly = document.getElementById('filter-deals-only').value;
+            const unitType = document.getElementById('filter-unit-type').value;
 
-            let filtered = deals.filter(d => {
-                const pct = Math.round(((d.originalPrice - d.salePrice) / d.originalPrice) * 100);
-                const matchesSearch = d.title.toLowerCase().includes(search) || d.store.toLowerCase().includes(search);
-                const matchesStore = selectedStore === 'All' || d.store === selectedStore;
-                const matchesCategory = category === 'All' || d.category === category;
-                const matchesSavings = pct >= minSavings;
-                const matchesReward = reward === 'All' || 
-                    (reward === 'No Loyalty Needed' && d.loyalty === 'No Loyalty Needed') ||
-                    (reward === 'Loyalty Required' && d.loyalty !== 'No Loyalty Needed');
-
-                return matchesSearch && matchesStore && matchesCategory && matchesSavings && matchesReward;
+            let filtered = catalog.filter(item => {
+                const matchesSearch = item.title.toLowerCase().includes(search) || item.store.toLowerCase().includes(search);
+                const matchesStore = selectedStoreFilter === 'All' || item.store === selectedStoreFilter;
+                const matchesCategory = category === 'All' || item.category === category;
+                const matchesDeals = dealsOnly === 'All' || (dealsOnly === 'SaleOnly' && item.isSale);
+                const matchesUnit = unitType === 'All' || item.unit === unitType;
+                return matchesSearch && matchesStore && matchesCategory && matchesDeals && matchesUnit;
             });
 
+            // Sorting Engine
             filtered.sort((a, b) => {
-                const pctA = ((a.originalPrice - a.salePrice) / a.originalPrice) * 100;
-                const pctB = ((b.originalPrice - b.salePrice) / b.originalPrice) * 100;
-                if (sort === 'savings-desc') return pctB - pctA;
-                if (sort === 'price-asc') return a.salePrice - b.salePrice;
+                const uA = computeUnitPrice(a.price, a.size, a.unit).perOz;
+                const uB = computeUnitPrice(b.price, b.size, b.unit).perOz;
+                if (sort === 'unit-asc') return uA - uB;
+                if (sort === 'price-asc') return a.price - b.price;
+                if (sort === 'savings-desc') return ((b.originalPrice - b.price)/b.originalPrice) - ((a.originalPrice - a.price)/a.originalPrice);
                 if (sort === 'store-asc') return a.store.localeCompare(b.store);
                 return 0;
             });
 
-            document.getElementById('results-count').innerText = `${filtered.length} items`;
+            document.getElementById('catalog-count').innerText = `${filtered.length} items`;
+            document.getElementById('stat-total-items').innerText = catalog.length;
 
-            const dealsGrid = document.getElementById('deals-grid');
-            const emptyState = document.getElementById('empty-state');
+            const grid = document.getElementById('catalog-grid');
+            const empty = document.getElementById('catalog-empty');
 
             if (filtered.length === 0) {
-                dealsGrid.innerHTML = '';
-                emptyState.classList.remove('hidden');
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
                 return;
             }
 
-            emptyState.classList.add('hidden');
-            dealsGrid.innerHTML = filtered.map(d => {
-                const pct = Math.round(((d.originalPrice - d.salePrice) / d.originalPrice) * 100);
-                const isWatchlisted = watchlist.some(w => w.id === d.id);
+            empty.classList.add('hidden');
+            grid.innerHTML = filtered.map(item => {
+                const units = computeUnitPrice(item.price, item.size, item.unit);
+                const isWatch = watchlist.includes(item.id);
+                const pctOff = Math.round(((item.originalPrice - item.price)/item.originalPrice)*100);
 
                 return `
-                    <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition flex flex-col justify-between relative">
+                    <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition flex flex-col justify-between">
                         <div>
-                            <div class="flex justify-between items-start gap-2 mb-2">
-                                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">${d.store}</span>
-                                <span class="badge-discount text-xs font-black bg-red-500 text-white px-2 py-0.5 rounded-full">${pct}% OFF</span>
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">${item.store}</span>
+                                ${item.isSale ? `<span class="badge-discount text-[10px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full">${pctOff}% OFF</span>` : ''}
                             </div>
-                            <h3 class="font-bold text-gray-900 text-sm leading-snug mb-1">${d.title}</h3>
-                            <p class="text-xs text-gray-400 mb-3"><i class="fa-solid fa-tag text-[10px] mr-1"></i>${d.category}</p>
+                            <h3 class="font-bold text-gray-900 text-xs leading-snug mb-1">${item.title}</h3>
+                            <p class="text-[10px] text-gray-400 mb-3"><i class="fa-solid fa-tag mr-1"></i>${item.category}</p>
                         </div>
 
                         <div>
-                            <div class="flex items-baseline gap-2 mb-3">
-                                <span class="text-2xl font-black text-emerald-700">$${d.salePrice.toFixed(2)}</span>
-                                <span class="text-xs text-gray-400 line-through">$${d.originalPrice.toFixed(2)}</span>
+                            <div class="bg-emerald-50/60 border border-emerald-100 p-2.5 rounded-xl mb-3 space-y-1">
+                                <div class="flex justify-between items-baseline">
+                                    <span class="text-xl font-black text-emerald-900">$${item.price.toFixed(2)}</span>
+                                    <span class="text-xs font-bold text-emerald-700">$${units.perOz.toFixed(2)} / oz</span>
+                                </div>
+                                <div class="flex justify-between text-[10px] text-gray-500">
+                                    <span>${item.size} ${item.unit} package</span>
+                                    <span class="font-semibold text-gray-700">$${units.perLb.toFixed(2)} / lb</span>
+                                </div>
                             </div>
 
-                            <div class="text-[11px] text-gray-500 bg-gray-50 p-2 rounded-xl mb-3 flex justify-between items-center">
-                                <span><i class="fa-solid fa-id-card text-emerald-600 mr-1"></i>${d.loyalty}</span>
-                                <span class="text-[10px] text-gray-400">Exp: ${d.expires}</span>
-                            </div>
-
-                            <div class="flex gap-2">
-                                <button onclick="toggleWatchlist('${d.id}')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition ${isWatchlisted ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                                    <i class="fa-solid ${isWatchlisted ? 'fa-check text-amber-600' : 'fa-plus'}"></i>
-                                    <span>${isWatchlisted ? 'In Watchlist' : '+ Watchlist'}</span>
-                                </button>
-                                <button onclick="editDeal('${d.id}')" class="p-2 text-gray-400 hover:text-emerald-600 rounded-xl hover:bg-gray-100"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button onclick="deleteDeal('${d.id}')" class="p-2 text-gray-400 hover:text-red-600 rounded-xl hover:bg-gray-100"><i class="fa-solid fa-trash"></i></button>
-                            </div>
+                            <button onclick="toggleWatchlist('${item.id}')" class="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition ${isWatch ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                                <i class="fa-solid ${isWatch ? 'fa-check text-amber-600' : 'fa-plus'}"></i>
+                                <span>${isWatch ? 'In Shopping List' : '+ Add to Trip List'}</span>
+                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function updateStats() {
-            document.getElementById('stat-total-deals').innerText = deals.length;
-            if (deals.length > 0) {
-                const avgPct = deals.reduce((acc, d) => acc + (((d.originalPrice - d.salePrice) / d.originalPrice) * 100), 0) / deals.length;
-                document.getElementById('stat-avg-savings').innerText = `${Math.round(avgPct)}%`;
+        // AISLE CALCULATOR LOGIC
+        window.calculateAisleComparison = function() {
+            const priceA = parseFloat(document.getElementById('aisle-price-a').value) || 0;
+            const sizeA = parseFloat(document.getElementById('aisle-size-a').value) || 1;
+            const unitA = document.getElementById('aisle-unit-a').value;
+            const servingsA = parseFloat(document.getElementById('aisle-servings-a').value) || 1;
+
+            const priceB = parseFloat(document.getElementById('aisle-price-b').value) || 0;
+            const sizeB = parseFloat(document.getElementById('aisle-size-b').value) || 1;
+            const unitB = document.getElementById('aisle-unit-b').value;
+            const servingsB = parseFloat(document.getElementById('aisle-servings-b').value) || 1;
+
+            const statsA = computeUnitPrice(priceA, sizeA, unitA);
+            const statsB = computeUnitPrice(priceB, sizeB, unitB);
+
+            const servingCostA = priceA / servingsA;
+            const servingCostB = priceB / servingsB;
+
+            document.getElementById('aisle-unit-price-a').innerText = `$${statsA.perOz.toFixed(3)} / oz`;
+            document.getElementById('aisle-lb-price-a').innerText = `$${statsA.perLb.toFixed(2)} / lb`;
+            document.getElementById('aisle-serving-price-a').innerText = `$${servingCostA.toFixed(2)} / serving`;
+
+            document.getElementById('aisle-unit-price-b').innerText = `$${statsB.perOz.toFixed(3)} / oz`;
+            document.getElementById('aisle-lb-price-b').innerText = `$${statsB.perLb.toFixed(2)} / lb`;
+            document.getElementById('aisle-serving-price-b').innerText = `$${servingCostB.toFixed(2)} / serving`;
+
+            const winnerA = document.getElementById('aisle-winner-a');
+            const winnerB = document.getElementById('aisle-winner-b');
+            const verdictTitle = document.getElementById('aisle-verdict-title');
+            const verdictDesc = document.getElementById('aisle-verdict-desc');
+
+            if (statsA.perOz < statsB.perOz) {
+                const diffPct = (((statsB.perOz - statsA.perOz) / statsB.perOz) * 100).toFixed(1);
+                winnerA.classList.remove('hidden');
+                winnerB.classList.add('hidden');
+                verdictTitle.innerText = `Option A is ${diffPct}% Cheaper per Ounce`;
+                verdictDesc.innerText = `Option A costs $${statsA.perOz.toFixed(2)}/oz vs $${statsB.perOz.toFixed(2)}/oz for Option B.`;
+            } else if (statsB.perOz < statsA.perOz) {
+                const diffPct = (((statsA.perOz - statsB.perOz) / statsA.perOz) * 100).toFixed(1);
+                winnerB.classList.remove('hidden');
+                winnerA.classList.add('hidden');
+                verdictTitle.innerText = `Option B is ${diffPct}% Cheaper per Ounce`;
+                verdictDesc.innerText = `Option B costs $${statsB.perOz.toFixed(2)}/oz vs $${statsA.perOz.toFixed(2)}/oz for Option A.`;
             } else {
-                document.getElementById('stat-avg-savings').innerText = '0%';
+                winnerA.classList.add('hidden');
+                winnerB.classList.add('hidden');
+                verdictTitle.innerText = `Both Options Have Identical Unit Value`;
+                verdictDesc.innerText = `Both products cost $${statsA.perOz.toFixed(2)} per ounce.`;
+            }
+        };
+
+        // TRIP PLANNER & BASKET LOGIC
+        function renderBasketView() {
+            document.getElementById('watchlist-count').innerText = watchlist.length;
+            document.getElementById('watchlist-count-mobile').innerText = watchlist.length;
+            document.getElementById('basket-item-count').innerText = watchlist.length;
+
+            const itemsContainer = document.getElementById('basket-items-list');
+            const selectedItems = catalog.filter(i => watchlist.includes(i.id));
+
+            if (selectedItems.length === 0) {
+                itemsContainer.innerHTML = '<p class="text-xs text-gray-400 p-4 border border-dashed rounded-xl text-center">Your basket is empty. Add items from the catalog search!</p>';
+                document.getElementById('store-comparison-matrix').innerHTML = '';
+                return;
             }
 
-            document.getElementById('watchlist-count').innerText = watchlist.length;
-            renderWatchlist();
+            itemsContainer.innerHTML = selectedItems.map(i => `
+                <div class="flex justify-between items-center p-2.5 bg-gray-50 border rounded-xl text-xs">
+                    <div>
+                        <span class="text-[9px] font-bold text-emerald-800 uppercase">${i.store}</span>
+                        <h4 class="font-bold text-gray-800">${i.title}</h4>
+                        <span class="text-emerald-700 font-bold">$${i.price.toFixed(2)}</span>
+                    </div>
+                    <button onclick="toggleWatchlist('${i.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+
+            // Calculate Store Matrix Costs
+            const storeTotals = STORES.map(store => {
+                let total = 0;
+                selectedItems.forEach(item => {
+                    const storeMatch = catalog.find(c => c.store === store && c.category === item.category);
+                    total += storeMatch ? storeMatch.price : item.price;
+                });
+                return { store, total };
+            });
+
+            storeTotals.sort((a,b) => a.total - b.total);
+            const best = storeTotals[0];
+            const avg = storeTotals.reduce((acc,s) => acc + s.total, 0) / storeTotals.length;
+
+            document.getElementById('best-store-name').innerText = best.store;
+            document.getElementById('best-store-cost').innerText = `$${best.total.toFixed(2)}`;
+            document.getElementById('best-store-savings').innerText = `Saves $${(avg - best.total).toFixed(2)} vs average store total`;
+
+            const maxCost = storeTotals[storeTotals.length - 1].total || 1;
+            document.getElementById('store-comparison-matrix').innerHTML = storeTotals.slice(0, 8).map(st => {
+                const widthPct = Math.max(15, (st.total / maxCost) * 100);
+                const isBest = st.store === best.store;
+                return `
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between font-semibold">
+                            <span class="${isBest ? 'text-emerald-800 font-bold' : 'text-gray-700'}">${st.store} ${isBest ? '★ (Best Route)' : ''}</span>
+                            <span class="${isBest ? 'text-emerald-800 font-bold' : 'text-gray-900'}">$${st.total.toFixed(2)}</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                            <div class="${isBest ? 'bg-emerald-600' : 'bg-gray-400'} h-2.5 rounded-full" style="width: ${widthPct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         window.toggleWatchlist = function(id) {
-            const idx = watchlist.findIndex(w => w.id === id);
-            if (idx > -1) {
-                watchlist.splice(idx, 1);
-            } else {
-                const deal = deals.find(d => d.id === id);
-                if (deal) watchlist.push(deal);
-            }
-            localStorage.setItem('grocery_saver_watchlist', JSON.stringify(watchlist));
-            updateStats();
-            renderDeals();
+            const idx = watchlist.indexOf(id);
+            if (idx > -1) watchlist.splice(idx, 1);
+            else watchlist.push(id);
+            localStorage.setItem('grocery_optimizer_watchlist', JSON.stringify(watchlist));
+            renderCatalog();
+            renderBasketView();
         };
 
-        function renderWatchlist() {
-            const container = document.getElementById('watchlist-items');
-            if (watchlist.length === 0) {
-                container.innerHTML = '<p class="text-xs text-gray-400 text-center py-8">Your shopping list is empty. Add deals to track your trip!</p>';
-                document.getElementById('watchlist-total-cost').innerText = '$0.00';
-                document.getElementById('watchlist-total-savings').innerText = '$0.00';
-                return;
-            }
+        window.clearWatchlist = function() {
+            watchlist = [];
+            localStorage.setItem('grocery_optimizer_watchlist', JSON.stringify(watchlist));
+            renderCatalog();
+            renderBasketView();
+        };
 
-            let totalCost = 0;
-            let totalSavings = 0;
+        window.switchView = function(viewName) {
+            document.getElementById('view-catalog').classList.add('hidden');
+            document.getElementById('view-aisle').classList.add('hidden');
+            document.getElementById('view-basket').classList.add('hidden');
 
-            container.innerHTML = watchlist.map(item => {
-                totalCost += item.salePrice;
-                totalSavings += (item.originalPrice - item.salePrice);
-                return `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs">
-                        <div>
-                            <span class="text-[9px] font-bold text-emerald-700 uppercase">${item.store}</span>
-                            <h4 class="font-bold text-gray-800">${item.title}</h4>
-                            <span class="text-emerald-600 font-bold">$${item.salePrice.toFixed(2)}</span>
-                        </div>
-                        <button onclick="toggleWatchlist('${item.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                `;
-            }).join('');
+            document.getElementById('tab-btn-catalog').classList.remove('tab-active');
+            document.getElementById('tab-btn-aisle').classList.remove('tab-active');
+            document.getElementById('tab-btn-basket').classList.remove('tab-active');
 
-            document.getElementById('watchlist-total-cost').innerText = `$${totalCost.toFixed(2)}`;
-            document.getElementById('watchlist-total-savings').innerText = `$${totalSavings.toFixed(2)}`;
-        }
-
-        window.deleteDeal = function(id) {
-            if (confirm("Delete this discount deal?")) {
-                deals = deals.filter(d => d.id !== id);
-                watchlist = watchlist.filter(w => w.id !== id);
-                saveAndRefresh();
+            if (viewName === 'catalog') {
+                document.getElementById('view-catalog').classList.remove('hidden');
+                document.getElementById('tab-btn-catalog').classList.add('tab-active');
+            } else if (viewName === 'aisle') {
+                document.getElementById('view-aisle').classList.remove('hidden');
+                document.getElementById('tab-btn-aisle').classList.add('tab-active');
+            } else if (viewName === 'basket') {
+                document.getElementById('view-basket').classList.remove('hidden');
+                document.getElementById('tab-btn-basket').classList.add('tab-active');
             }
         };
 
-        window.editDeal = function(id) {
-            const d = deals.find(item => item.id === id);
-            if (!d) return;
+        function setupEvents() {
+            document.getElementById('catalog-search').addEventListener('input', renderCatalog);
+            document.getElementById('filter-category').addEventListener('change', renderCatalog);
+            document.getElementById('filter-sort').addEventListener('change', renderCatalog);
+            document.getElementById('filter-deals-only').addEventListener('change', renderCatalog);
+            document.getElementById('filter-unit-type').addEventListener('change', renderCatalog);
 
-            document.getElementById('deal-id').value = d.id;
-            document.getElementById('input-store').value = d.store;
-            document.getElementById('input-category').value = d.category;
-            document.getElementById('input-title').value = d.title;
-            document.getElementById('input-sale-price').value = d.salePrice;
-            document.getElementById('input-original-price').value = d.originalPrice;
-            document.getElementById('input-loyalty').value = d.loyalty;
-            document.getElementById('input-expires').value = d.expires || '';
+            document.getElementById('add-item-btn').addEventListener('click', () => document.getElementById('add-modal').classList.remove('hidden'));
+            document.getElementById('open-basket-btn').addEventListener('click', () => switchView('basket'));
+            document.getElementById('mobile-basket-btn').addEventListener('click', () => switchView('basket'));
 
-            document.getElementById('modal-title').innerText = "Edit Grocery Deal";
-            document.getElementById('deal-modal').classList.remove('hidden');
-        };
-
-        function saveAndRefresh() {
-            localStorage.setItem('grocery_saver_deals', JSON.stringify(deals));
-            localStorage.setItem('grocery_saver_watchlist', JSON.stringify(watchlist));
-            updateStats();
-            renderDeals();
-        }
-
-        function setupEventListeners() {
-            document.getElementById('search-input').addEventListener('input', renderDeals);
-            document.getElementById('category-filter').addEventListener('change', renderDeals);
-            document.getElementById('savings-filter').addEventListener('change', renderDeals);
-            document.getElementById('sort-filter').addEventListener('change', renderDeals);
-            document.getElementById('reward-filter').addEventListener('change', renderDeals);
-
-            document.getElementById('sync-daily-btn').addEventListener('click', () => performDailySync(true));
-
-            document.getElementById('add-deal-btn').addEventListener('click', () => {
-                document.getElementById('deal-form').reset();
-                document.getElementById('deal-id').value = '';
-                document.getElementById('modal-title').innerText = "Add New Grocery Deal";
-                document.getElementById('deal-modal').classList.remove('hidden');
-            });
-
-            document.getElementById('close-modal-btn').addEventListener('click', () => document.getElementById('deal-modal').classList.add('hidden'));
-            document.getElementById('cancel-modal-btn').addEventListener('click', () => document.getElementById('deal-modal').classList.add('hidden'));
-
-            document.getElementById('open-shopping-list-btn').addEventListener('click', () => document.getElementById('watchlist-modal').classList.remove('hidden'));
-            document.getElementById('close-watchlist-btn').addEventListener('click', () => document.getElementById('watchlist-modal').classList.add('hidden'));
-
-            document.getElementById('clear-watchlist-btn').addEventListener('click', () => {
-                watchlist = [];
-                saveAndRefresh();
-            });
-
-            document.getElementById('reset-defaults-btn').addEventListener('click', () => {
-                if (confirm("Reset to default deal lists? Custom added deals will be reset.")) {
-                    deals = INITIAL_DEALS;
-                    watchlist = [];
-                    saveAndRefresh();
+            document.getElementById('reset-catalog-btn').addEventListener('click', () => {
+                if (confirm("Reset database to defaults?")) {
+                    catalog = INITIAL_CATALOG;
+                    localStorage.setItem('grocery_optimizer_catalog', JSON.stringify(catalog));
+                    renderCatalog();
                 }
             });
 
-            document.getElementById('deal-form').addEventListener('submit', (e) => {
+            document.getElementById('add-item-form').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const id = document.getElementById('deal-id').value || Date.now().toString();
-                const newDeal = {
-                    id,
-                    store: document.getElementById('input-store').value,
-                    category: document.getElementById('input-category').value,
-                    title: document.getElementById('input-title').value,
-                    salePrice: parseFloat(document.getElementById('input-sale-price').value),
-                    originalPrice: parseFloat(document.getElementById('input-original-price').value),
-                    loyalty: document.getElementById('input-loyalty').value,
-                    expires: document.getElementById('input-expires').value
+                const newItem = {
+                    id: 'custom_' + Date.now(),
+                    store: document.getElementById('modal-store').value,
+                    category: document.getElementById('modal-category').value,
+                    title: document.getElementById('modal-title').value,
+                    price: parseFloat(document.getElementById('modal-price').value),
+                    originalPrice: parseFloat(document.getElementById('modal-price').value),
+                    size: parseFloat(document.getElementById('modal-size').value),
+                    unit: document.getElementById('modal-unit').value,
+                    servings: 4,
+                    isSale: false
                 };
-
-                const existingIdx = deals.findIndex(d => d.id === id);
-                if (existingIdx > -1) {
-                    deals[existingIdx] = newDeal;
-                } else {
-                    deals.unshift(newDeal);
-                }
-
-                saveAndRefresh();
-                document.getElementById('deal-modal').classList.add('hidden');
+                catalog.unshift(newItem);
+                localStorage.setItem('grocery_optimizer_catalog', JSON.stringify(catalog));
+                renderCatalog();
+                closeModal();
             });
         }
+
+        window.closeModal = function() {
+            document.getElementById('add-modal').classList.add('hidden');
+        };
 
         init();
     </script>
